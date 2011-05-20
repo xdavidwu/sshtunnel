@@ -317,8 +317,7 @@ public class SSHTunnel extends PreferenceActivity implements
 
 		if (!isWorked(SERVICE_NAME)) {
 			CopyAssets();
-			runCommand("chmod 777 /data/data/org.sshtunnel/iptables_g1");
-			runCommand("chmod 777 /data/data/org.sshtunnel/iptables_n1");
+			runCommand("chmod 777 /data/data/org.sshtunnel/iptables");
 			runCommand("chmod 777 /data/data/org.sshtunnel/redsocks");
 			runCommand("chmod 777 /data/data/org.sshtunnel/proxy_http.sh");
 			runCommand("chmod 777 /data/data/org.sshtunnel/proxy_socks.sh");
@@ -915,13 +914,7 @@ public class SSHTunnel extends PreferenceActivity implements
 			// Nothing
 		}
 
-		if (SSHTunnelService.isARMv6()) {
-			runRootCommand(SSHTunnelService.BASE
-					+ "iptables_g1 -t nat -F OUTPUT");
-		} else {
-			runRootCommand(SSHTunnelService.BASE
-					+ "iptables_n1 -t nat -F OUTPUT");
-		}
+		runRootCommand(SSHTunnelService.BASE + "iptables -t nat -F OUTPUT");
 
 		runRootCommand(SSHTunnelService.BASE + "proxy_http.sh stop");
 	}
