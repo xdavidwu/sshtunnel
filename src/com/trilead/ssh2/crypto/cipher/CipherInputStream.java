@@ -1,5 +1,7 @@
+
 package com.trilead.ssh2.crypto.cipher;
 
+import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
@@ -9,30 +11,27 @@ import java.io.InputStream;
  * @author Christian Plattner, plattner@trilead.com
  * @version $Id: CipherInputStream.java,v 1.1 2007/10/15 12:49:55 cplattne Exp $
  */
-public class CipherInputStream {
-	BlockCipher currentCipher;
-	InputStream bi;
-	byte[] buffer;
-	byte[] enc;
-	int blockSize;
-	int pos;
+public class CipherInputStream
+{
+	private BlockCipher currentCipher;
+	private final BufferedInputStream bi;
+	private byte[] buffer;
+	private byte[] enc;
+	private int blockSize;
+	private int pos;
 
-	/*
-	 * We cannot use java.io.BufferedInputStream, since that is not available in
-	 * J2ME. Everything could be improved alot here.
-	 */
-
-	final int BUFF_SIZE = 2048;
-	byte[] input_buffer = new byte[BUFF_SIZE];
-	int input_buffer_pos = 0;
-	int input_buffer_size = 0;
-
-	public CipherInputStream(BlockCipher tc, InputStream bi) {
-		this.bi = bi;
+	public CipherInputStream(BlockCipher tc, InputStream bi)
+	{
+		if (bi instanceof BufferedInputStream) {
+			this.bi = (BufferedInputStream) bi;
+		} else {
+			this.bi = new BufferedInputStream(bi);
+		}
 		changeCipher(tc);
 	}
 
-	public void changeCipher(BlockCipher bc) {
+	public void changeCipher(BlockCipher bc)
+	{
 		this.currentCipher = bc;
 		blockSize = bc.getBlockSize();
 		buffer = new byte[blockSize];
@@ -40,62 +39,39 @@ public class CipherInputStream {
 		pos = blockSize;
 	}
 
-	private int fill_buffer() throws IOException {
-		input_buffer_pos = 0;
-		input_buffer_size = bi.read(input_buffer, 0, BUFF_SIZE);
-		return input_buffer_size;
-	}
-
-	private void getBlock() throws IOException {
+	private void getBlock() throws IOException
+	{
 		int n = 0;
-		while (n < blockSize) {
-			int len = internal_read(enc, n, blockSize - n);
+		while (n < blockSize)
+		{
+			int len = bi.read(enc, n, blockSize - n);
 			if (len < 0)
 				throw new IOException("Cannot read full block, EOF reached.");
 			n += len;
 		}
 
-		try {
+		try
+		{
 			currentCipher.transformBlock(enc, 0, buffer, 0);
-		} catch (Exception e) {
+		}
+		catch (Exception e)
+		{
 			throw new IOException("Error while decrypting block.");
 		}
 		pos = 0;
 	}
 
-	private int internal_read(byte[] b, int off, int len) throws IOException {
-		if (input_buffer_size < 0)
-			return -1;
-
-		if (input_buffer_pos >= input_buffer_size) {
-			if (fill_buffer() <= 0)
-				return -1;
-		}
-
-		int avail = input_buffer_size - input_buffer_pos;
-		int thiscopy = (len > avail) ? avail : len;
-
-		System.arraycopy(input_buffer, input_buffer_pos, b, off, thiscopy);
-		input_buffer_pos += thiscopy;
-
-		return thiscopy;
-	}
-
-	public int read() throws IOException {
-		if (pos >= blockSize) {
-			getBlock();
-		}
-		return buffer[pos++] & 0xff;
-	}
-
-	public int read(byte[] dst) throws IOException {
+	public int read(byte[] dst) throws IOException
+	{
 		return read(dst, 0, dst.length);
 	}
 
-	public int read(byte[] dst, int off, int len) throws IOException {
+	public int read(byte[] dst, int off, int len) throws IOException
+	{
 		int count = 0;
 
-		while (len > 0) {
+		while (len > 0)
+		{
 			if (pos >= blockSize)
 				getBlock();
 
@@ -110,17 +86,48 @@ public class CipherInputStream {
 		return count;
 	}
 
-	public int readPlain(byte[] b, int off, int len) throws IOException {
+	public int read() throws IOException
+	{
+		if (pos >= blockSize)
+		{
+			getBlock();
+		}
+		return buffer[pos++] & 0xff;
+	}
+
+	public int readPlain(byte[] b, int off, int len) throws IOException
+	{
 		if (pos != blockSize)
-			throw new IOException(
-					"Cannot read plain since crypto buffer is not aligned.");
+			throw new IOException("Cannot read plain since crypto buffer is not aligned.");
 		int n = 0;
-		while (n < len) {
-			int cnt = internal_read(b, off + n, len - n);
+		while (n < len)
+		{
+			int cnt = bi.read(b, off + n, len - n);
 			if (cnt < 0)
 				throw new IOException("Cannot fill buffer, EOF reached.");
 			n += cnt;
 		}
+		return n;
+	}
+
+	public int peekPlain(byte[] b, int off, int len) throws IOException
+	{
+		if (pos != blockSize)
+			throw new IOException("Cannot read plain since crypto buffer is not aligned.");
+		int n = 0;
+
+		bi.mark(len);
+		try {
+			while (n < len) {
+				int cnt = bi.read(b, off + n, len - n);
+				if (cnt < 0)
+					throw new IOException("Cannot fill buffer, EOF reached.");
+				n += cnt;
+			}
+		} finally {
+			bi.reset();
+		}
+
 		return n;
 	}
 }

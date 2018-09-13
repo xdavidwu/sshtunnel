@@ -1,3 +1,4 @@
+
 package com.trilead.ssh2;
 
 /**
@@ -6,7 +7,8 @@ package com.trilead.ssh2;
  * @author Christian Plattner, plattner@trilead.com
  * @version $Id: ConnectionInfo.java,v 1.1 2007/10/15 12:49:56 cplattne Exp $
  */
-public class ConnectionInfo {
+public class ConnectionInfo
+{
 	/**
 	 * The used key exchange (KEX) algorithm in the latest key exchange.
 	 */
@@ -48,4 +50,16 @@ public class ConnectionInfo {
 	 * Number of kex exchanges performed on this connection so far.
 	 */
 	public int keyExchangeCounter = 0;
+
+	/**
+	 * The currently used compression algorithm for packets from the client to
+	 * the server.
+	 */
+	public String clientToServerCompressionAlgorithm;
+
+	/**
+	 * The currently used compression algorithm for packets from the server to
+	 * the client.
+	 */
+	public String serverToClientCompressionAlgorithm;
 }

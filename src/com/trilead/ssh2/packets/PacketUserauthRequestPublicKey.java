@@ -1,15 +1,16 @@
 package com.trilead.ssh2.packets;
 
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 
 /**
  * PacketUserauthRequestPublicKey.
  * 
  * @author Christian Plattner, plattner@trilead.com
- * @version $Id: PacketUserauthRequestPublicKey.java,v 1.1 2007/10/15 12:49:55
- *          cplattne Exp $
+ * @version $Id: PacketUserauthRequestPublicKey.java,v 1.1 2007/10/15 12:49:55 cplattne Exp $
  */
-public class PacketUserauthRequestPublicKey {
+public class PacketUserauthRequestPublicKey
+{
 	byte[] payload;
 
 	String userName;
@@ -19,8 +20,18 @@ public class PacketUserauthRequestPublicKey {
 	byte[] pk;
 	byte[] sig;
 
-	public PacketUserauthRequestPublicKey(byte payload[], int off, int len)
-			throws IOException {
+	public PacketUserauthRequestPublicKey(String serviceName, String user,
+			String pkAlgorithmName, byte[] pk, byte[] sig)
+	{
+		this.serviceName = serviceName;
+		this.userName = user;
+		this.pkAlgoName = pkAlgorithmName;
+		this.pk = pk;
+		this.sig = sig;
+	}
+
+	public PacketUserauthRequestPublicKey(byte payload[], int off, int len) throws IOException
+	{
 		this.payload = new byte[len];
 		System.arraycopy(payload, off, this.payload, 0, len);
 
@@ -35,20 +46,12 @@ public class PacketUserauthRequestPublicKey {
 		throw new IOException("Not implemented!");
 	}
 
-	public PacketUserauthRequestPublicKey(String serviceName, String user,
-			String pkAlgorithmName, byte[] pk, byte[] sig) {
-		this.serviceName = serviceName;
-		this.userName = user;
-		this.pkAlgoName = pkAlgorithmName;
-		this.pk = pk;
-		this.sig = sig;
-	}
-
-	public byte[] getPayload() {
-		if (payload == null) {
+	public byte[] getPayload() throws UnsupportedEncodingException {
+		if (payload == null)
+		{
 			TypesWriter tw = new TypesWriter();
 			tw.writeByte(Packets.SSH_MSG_USERAUTH_REQUEST);
-			tw.writeString(userName);
+			tw.writeString(userName, "UTF-8");
 			tw.writeString(serviceName);
 			tw.writeString("publickey");
 			tw.writeBoolean(true);

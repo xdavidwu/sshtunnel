@@ -1,7 +1,6 @@
 package com.trilead.ssh2.packets;
 
 import java.io.IOException;
-import java.math.BigInteger;
 
 /**
  * PacketKexDHReply.
@@ -9,15 +8,16 @@ import java.math.BigInteger;
  * @author Christian Plattner, plattner@trilead.com
  * @version $Id: PacketKexDHReply.java,v 1.1 2007/10/15 12:49:55 cplattne Exp $
  */
-public class PacketKexDHReply {
+public class PacketKexDHReply
+{
 	byte[] payload;
 
 	byte[] hostKey;
-	BigInteger f;
+	byte[] publicKey;
 	byte[] signature;
-
-	public PacketKexDHReply(byte payload[], int off, int len)
-			throws IOException {
+	
+	public PacketKexDHReply(byte payload[], int off, int len) throws IOException
+	{
 		this.payload = new byte[len];
 		System.arraycopy(payload, off, this.payload, 0, len);
 
@@ -30,22 +30,24 @@ public class PacketKexDHReply {
 					+ packet_type + ")");
 
 		hostKey = tr.readByteString();
-		f = tr.readMPINT();
+		publicKey = tr.readByteString();
 		signature = tr.readByteString();
 
-		if (tr.remain() != 0)
-			throw new IOException("PADDING IN SSH_MSG_KEXDH_REPLY!");
+		if (tr.remain() != 0) throw new IOException("PADDING IN SSH_MSG_KEXDH_REPLY!");
 	}
 
-	public BigInteger getF() {
-		return f;
+	public byte[] getF()
+	{
+		return publicKey;
 	}
-
-	public byte[] getHostKey() {
+	
+	public byte[] getHostKey()
+	{
 		return hostKey;
 	}
 
-	public byte[] getSignature() {
+	public byte[] getSignature()
+	{
 		return signature;
 	}
 }
