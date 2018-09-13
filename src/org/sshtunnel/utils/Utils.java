@@ -12,11 +12,11 @@ import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
-
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.PackageManager.NameNotFoundException;
 import android.graphics.drawable.Drawable;
+import android.os.Build;
 import android.util.Log;
 
 public class Utils {
@@ -61,19 +61,29 @@ public class Utils {
 		Context context = SSHTunnelContext.getAppContext();
 		NotificationManager notificationManager = (NotificationManager) context
 				.getSystemService(Context.NOTIFICATION_SERVICE);
-		Notification notification = new Notification();
+		Notification notification;
+		Notification.Builder notifBuilder;
 		Intent intent = new Intent(context, SSHTunnel.class);
 		intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
 		PendingIntent pendIntent = PendingIntent.getActivity(context, 0,
 				intent, 0);
 
+		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O){
+                        notifBuilder = new Notification.Builder(context,SSHTunnel.CHANNEL_ID);
+                }
+                else {
+                        notifBuilder = new Notification.Builder(context);
+                }
+
+		notification = notifBuilder.setContentTitle(context.getString(R.string.app_name))
+				.setContentText(context.getString(R.string.auto_connecting))
+				.setContentIntent(pendIntent)
+				.build();
+
 		notification.icon = R.drawable.ic_stat;
 		notification.tickerText = context.getString(R.string.auto_connecting);
 		notification.flags = Notification.FLAG_ONGOING_EVENT;
 
-		notification.setLatestEventInfo(context,
-				context.getString(R.string.app_name),
-				context.getString(R.string.auto_connecting), pendIntent);
 		notificationManager.notify(1, notification);
 	}
 }

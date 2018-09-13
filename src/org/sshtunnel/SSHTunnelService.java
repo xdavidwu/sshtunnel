@@ -62,6 +62,7 @@ import org.sshtunnel.utils.ProxyedApp;
 import org.sshtunnel.utils.Utils;
 
 import android.app.Notification;
+import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
@@ -78,6 +79,7 @@ import android.media.AudioManager;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
@@ -106,6 +108,7 @@ public class SSHTunnelService extends Service implements ServerHostKeyVerifier,
 	// ConnectivityBroadcastReceiver stateChanged = null;
 
 	private Notification notification;
+	private Notification.Builder notifBuilder;
 	private NotificationManager notificationManager;
 	private Intent intent;
 	private PendingIntent pendIntent;
@@ -408,15 +411,6 @@ public class SSHTunnelService extends Service implements ServerHostKeyVerifier,
 
 	public boolean connect() {
 
-		// try {
-		//
-		// connection.setCompression(true);
-		// connection.setTCPNoDelay(true);
-		//
-		// } catch (IOException e) {
-		// Log.e(TAG, "Could not enable compression!", e);
-		// }
-
 		// initialize the upstream proxy
 		if (profile.isUpstreamProxy()) {
 			try {
@@ -477,6 +471,7 @@ public class SSHTunnelService extends Service implements ServerHostKeyVerifier,
 		// begin to connect
 		try {
 			connection = new Connection(profile.getHost(), profile.getPort());
+			// connection.setCompression(true);
 
 			if (proxyData != null)
 				connection.setProxyData(proxyData);
@@ -886,22 +881,26 @@ public class SSHTunnelService extends Service implements ServerHostKeyVerifier,
 	}
 
 	private void notifyAlert(String title, String info) {
+		notification = notifBuilder.setContentTitle(getString(R.string.app_name) + " | " + Utils.getProfileName(profile))
+			.setContentText(info)
+			.setContentIntent(pendIntent)
+			.build();
 		notification.tickerText = title;
 		notification.flags = Notification.FLAG_ONGOING_EVENT;
 		// notification.defaults = Notification.DEFAULT_SOUND;
 		initSoundVibrateLights(notification);
-		notification.setLatestEventInfo(this, getString(R.string.app_name)
-				+ " | " + Utils.getProfileName(profile), info, pendIntent);
 		notificationManager.cancel(1);
 		startForeground(1, notification);
 	}
 
 	private void notifyAlert(String title, String info, int flags) {
+		notification = notifBuilder.setContentTitle(getString(R.string.app_name) + " | " + Utils.getProfileName(profile))
+			.setContentText(info)
+			.setContentIntent(pendIntent)
+			.build();
 		notification.tickerText = title;
 		notification.flags = flags;
 		initSoundVibrateLights(notification);
-		notification.setLatestEventInfo(this, getString(R.string.app_name)
-				+ " | " + Utils.getProfileName(profile), info, pendIntent);
 		notificationManager.cancel(0);
 		notificationManager.notify(0, notification);
 	}
@@ -921,7 +920,13 @@ public class SSHTunnelService extends Service implements ServerHostKeyVerifier,
 		intent = new Intent(this, SSHTunnel.class);
 		intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
 		pendIntent = PendingIntent.getActivity(this, 0, intent, 0);
-		notification = new Notification();
+
+		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O){
+			notifBuilder = new Notification.Builder(getApplicationContext(),SSHTunnel.CHANNEL_ID);
+		}
+		else {
+			notifBuilder = new Notification.Builder(getApplicationContext());
+		}
 
 		try {
 			mStartForeground = getClass().getMethod("startForeground",
@@ -998,30 +1003,30 @@ public class SSHTunnelService extends Service implements ServerHostKeyVerifier,
 	private void onDisconnect() {
 		connected = false;
 
-		try {
+	//	try {
 			if (lpf != null) {
 				lpf.close();
 				lpf = null;
 			}
-		} catch (IOException ignore) {
+	//	} catch (IOException ignore) {
 			// Nothing
-		}
-		try {
+	//	}
+	//	try {
 			if (dpf != null) {
 				dpf.close();
 				dpf = null;
 			}
-		} catch (IOException ignore) {
+	//	} catch (IOException ignore) {
 			// Nothing
-		}
-		try {
+	//	}
+	//	try {
 			if (dnspf != null) {
 				dnspf.close();
 				dnspf = null;
 			}
-		} catch (IOException ignore) {
+	//	} catch (IOException ignore) {
 			// Nothing
-		}
+	//	}
 
 		if (connection != null) {
 			connection.close();

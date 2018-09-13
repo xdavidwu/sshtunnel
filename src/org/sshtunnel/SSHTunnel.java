@@ -52,6 +52,8 @@ import org.sshtunnel.utils.Constraints;
 import org.sshtunnel.utils.Utils;
 
 import android.app.AlertDialog;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
 import android.app.ProgressDialog;
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -66,6 +68,7 @@ import android.content.res.AssetManager;
 import android.net.ConnectivityManager;
 import android.net.wifi.WifiConfiguration;
 import android.net.wifi.WifiManager;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -92,7 +95,9 @@ import com.ksmaze.android.preference.ListPreferenceMultiSelect;
 public class SSHTunnel extends PreferenceActivity implements
 		OnSharedPreferenceChangeListener {
 
-	private static final String TAG = "SSHTunnel";
+	private final static String TAG = "SSHTunnel";
+
+	public final static String CHANNEL_ID="org.sshtunnel.notif";
 
 	public static boolean runCommand(String command) {
 		Process process = null;
@@ -414,6 +419,12 @@ public class SSHTunnel extends PreferenceActivity implements
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O){
+			NotificationManager notificationManager = (NotificationManager) this
+                                .getSystemService(NOTIFICATION_SERVICE);
+                        notificationManager.createNotificationChannel(new NotificationChannel(CHANNEL_ID, "SSHTunnel", NotificationManager.IMPORTANCE_DEFAULT));
+                }
+		
 		addPreferencesFromResource(R.xml.main_pre);
 
 		hostText = (EditTextPreference) findPreference("host");
