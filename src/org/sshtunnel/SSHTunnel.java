@@ -168,6 +168,7 @@ public class SSHTunnel extends PreferenceActivity implements
 	private CheckBoxPreference isGFWListCheck;
 	private CheckBoxPreference isDNSProxyCheck;
 	private CheckBoxPreference isUpstreamProxyCheck;
+	private CheckBoxPreference wantCompressionCheck;
 
 	private ListPreference profileListPreference;
 
@@ -299,6 +300,7 @@ public class SSHTunnel extends PreferenceActivity implements
 		isGFWListCheck.setEnabled(false);
 		isDNSProxyCheck.setEnabled(false);
 		isUpstreamProxyCheck.setEnabled(false);
+		wantCompressionCheck.setEnabled(false);
 	}
 
 	private void enableAll() {
@@ -330,6 +332,7 @@ public class SSHTunnel extends PreferenceActivity implements
 		isAutoReconnectCheck.setEnabled(true);
 		isDNSProxyCheck.setEnabled(true);
 		isUpstreamProxyCheck.setEnabled(true);
+		wantCompressionCheck.setEnabled(true);
 	}
 
 	private String getVersionName() {
@@ -447,6 +450,7 @@ public class SSHTunnel extends PreferenceActivity implements
 		isGFWListCheck = (CheckBoxPreference) findPreference("isGFWList");
 		isDNSProxyCheck = (CheckBoxPreference) findPreference("isDNSProxy");
 		isUpstreamProxyCheck = (CheckBoxPreference) findPreference("isUpstreamProxy");
+		wantCompressionCheck = (CheckBoxPreference) findPreference("wantCompression");
 
 		registerReceiver(ssidReceiver, new IntentFilter(
 				android.net.ConnectivityManager.CONNECTIVITY_ACTION));

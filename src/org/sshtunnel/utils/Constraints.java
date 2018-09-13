@@ -22,6 +22,7 @@ public class Constraints {
 	public static final String IS_DNS_PROXY = "isDNSProxy";
 	public static final String IS_ACTIVE = "isActive";
 	public static final String IS_UPSTREAM_PROXY = "isUpstreamProxy";
+	public static final String WANT_COMPRESSION = "wantCompression";
 	
 	public static final String PORT = "port";
 	public static final String REMOTE_PORT = "remotePort";

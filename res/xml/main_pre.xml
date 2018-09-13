@@ -58,6 +58,10 @@
 		<CheckBoxPreference android:title="@string/enable_dnsproxy"
 			android:summary="@string/enable_dnsproxy_summary" android:key="isDNSProxy"
 			android:defaultValue="true"></CheckBoxPreference>
+		<CheckBoxPreference android:title="@string/enable_compression"
+			android:summary="@string/enable_compression_summary" android:key="wantCompression"
+			android:defaultValue="true"></CheckBoxPreference>
+
 
 	</PreferenceCategory>
 

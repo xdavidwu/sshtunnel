@@ -56,6 +56,9 @@ public class Profile {
 	boolean isActive;
 	@DatabaseField
 	boolean isUpstreamProxy;
+	@DatabaseField
+	boolean wantCompression;
+
 
 	Profile() {
 		// needed by ormlite
@@ -84,6 +87,7 @@ public class Profile {
 		this.upstreamProxy = "";
 		this.fingerPrint = "";
 		this.fingerPrintType = "";
+		this.wantCompression = true;
 	}
 
 	public String getHost() {
@@ -180,6 +184,10 @@ public class Profile {
 
 	public void setAutoSetProxy(boolean isAutoSetProxy) {
 		this.isAutoSetProxy = isAutoSetProxy;
+	}
+
+	public void setCompression(boolean wantCompression) {
+		this.wantCompression = wantCompression;
 	}
 
 	public void setGFWList(boolean isGFWList) {
@@ -284,6 +292,8 @@ public class Profile {
 		sb.append(", ").append("isSocks=").append(isSocks);
 		return sb.toString();
 	}
-	
-	
+
+	public boolean wantCompression(){
+		return wantCompression;
+	}
 }

@@ -108,6 +108,9 @@
 	<string name="enable_dnsproxy">Enable DNS Proxy</string>
 	<string name="enable_dnsproxy_summary">Enable DNS Proxy for some users behind a firewall
 	</string>
+	<string name="enable_compression">Enable Compression</string>
+	<string name="enable_compression_summary">Enable deflate compression for SSH
+	</string>
 	<string name="dnsproxy_addr">Upstream DNS Address</string>
 	<string name="dnsproxy_addr_summary">The upstream DNS used by DNS Proxy, modify
 		it only

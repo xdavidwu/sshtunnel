@@ -470,7 +470,7 @@ public class SSHTunnelService extends Service implements ServerHostKeyVerifier,
 		// begin to connect
 		try {
 			connection = new Connection(profile.getHost(), profile.getPort());
-			// connection.setCompression(true);
+			if (profile.wantCompression()) connection.setCompression(true);
 
 			if (proxyData != null)
 				connection.setProxyData(proxyData);

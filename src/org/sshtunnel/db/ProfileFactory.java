@@ -165,6 +165,7 @@ public class ProfileFactory {
 		profile.isDNSProxy = settings
 				.getBoolean(Constraints.IS_DNS_PROXY, true);
 		profile.isUpstreamProxy = settings.getBoolean(Constraints.IS_UPSTREAM_PROXY, false);
+		profile.wantCompression = settings.getBoolean(Constraints.WANT_COMPRESSION, false);
 
 		try {
 			profile.port = Integer.valueOf(settings.getString(Constraints.PORT,
@@ -250,6 +251,7 @@ public class ProfileFactory {
 		ed.putBoolean(Constraints.IS_GFW_LIST, profile.isGFWList);
 		ed.putBoolean(Constraints.IS_DNS_PROXY, profile.isDNSProxy);
 		ed.putBoolean(Constraints.IS_UPSTREAM_PROXY, profile.isUpstreamProxy);
+		ed.putBoolean(Constraints.WANT_COMPRESSION, profile.wantCompression);
 
 		ed.commit();
 	}
