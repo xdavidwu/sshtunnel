@@ -181,6 +181,12 @@ public class SSHTunnelService extends Service implements ServerHostKeyVerifier,
 
 	final static String CMD_IPTABLES_DNAT_ADD_SOCKS = BASE
 			+ "iptables -t nat -A SSHTUNNEL -p tcp --dport 5228 -j DNAT --to-destination 127.0.0.1:8123\n";
+	final static String CMD_IPTABLES_REDIRECT_ADD_FULL = BASE
+			+ "iptables -t nat -A SSHTUNNEL -p tcp ! --dport 1984 -j REDIRECT --to 8123\n";
+
+	final static String CMD_IPTABLES_DNAT_ADD_FULL = BASE
+			+ "iptables -t nat -A SSHTUNNEL -p tcp ! --dport 1984 -j DNAT --to-destination 127.0.0.1:8123\n";
+
 
 	public static boolean runRootCommand(String command) {
 		Process process = null;
@@ -686,12 +692,18 @@ public class SSHTunnelService extends Service implements ServerHostKeyVerifier,
 					+ "iptables -t nat -A OUTPUT -p udp -j SSHTUNNELDNS\n");
 		}
 
-		cmd.append(hasRedirectSupport ? CMD_IPTABLES_REDIRECT_ADD
+		if (!profile.isAutoFullProxy())
+			cmd.append(hasRedirectSupport ? CMD_IPTABLES_REDIRECT_ADD
 				: CMD_IPTABLES_DNAT_ADD);
 
-		if (profile.isSocks())
-			cmd.append(hasRedirectSupport ? CMD_IPTABLES_REDIRECT_ADD_SOCKS
+		if (profile.isSocks()) {
+			if (!profile.isAutoFullProxy())
+				cmd.append(hasRedirectSupport ? CMD_IPTABLES_REDIRECT_ADD_SOCKS
 					: CMD_IPTABLES_DNAT_ADD_SOCKS);
+			else
+				cmd.append(hasRedirectSupport ? CMD_IPTABLES_REDIRECT_ADD_FULL
+					: CMD_IPTABLES_DNAT_ADD_FULL);
+		}
 
 		if (profile.isGFWList()) {
 			String[] gfw_list = getResources().getStringArray(R.array.gfw_list);
@@ -723,7 +735,8 @@ public class SSHTunnelService extends Service implements ServerHostKeyVerifier,
 		if (hostAddress != null)
 			rules = rules.replace("--dport 443",
 					"! -d " + hostAddress + " --dport 443").replace(
-					"--dport 80", "! -d " + hostAddress + " --dport 80");
+					"--dport 80", "! -d " + hostAddress + " --dport 80")
+					.replace("--dport 1984","--dport 1984 ! -d " + hostAddress);
 
 		if (profile.isSocks())
 			runRootCommand(rules.replace("8124", "8123"));

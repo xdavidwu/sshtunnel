@@ -17,6 +17,7 @@ public class Constraints {
 	public static final String IS_AUTO_RECONNECT = "isAutoReconnect";
 	public static final String IS_AUTO_CONNECT = "isAutoConnect";
 	public static final String IS_AUTO_SETPROXY = "isAutoSetProxy";
+	public static final String IS_AUTO_FULLPROXY = "isAutoFullProxy";
 	public static final String IS_GFW_LIST = "isGFWList";
 	public static final String IS_SOCKS = "isSocks";
 	public static final String IS_DNS_PROXY = "isDNSProxy";

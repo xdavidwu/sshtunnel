@@ -168,6 +168,7 @@ public class SSHTunnel extends PreferenceActivity implements
 	private CheckBoxPreference isAutoConnectCheck;
 	private CheckBoxPreference isAutoReconnectCheck;
 	private CheckBoxPreference isAutoSetProxyCheck;
+	private CheckBoxPreference isAutoFullProxyCheck;
 	private CheckBoxPreference isSocksCheck;
 	private CheckBoxPreference isGFWListCheck;
 	private CheckBoxPreference isDNSProxyCheck;
@@ -299,6 +300,7 @@ public class SSHTunnel extends PreferenceActivity implements
 
 		isSocksCheck.setEnabled(false);
 		isAutoSetProxyCheck.setEnabled(false);
+		isAutoFullProxyCheck.setEnabled(false);
 		isAutoConnectCheck.setEnabled(false);
 		isAutoReconnectCheck.setEnabled(false);
 		isGFWListCheck.setEnabled(false);
@@ -329,6 +331,9 @@ public class SSHTunnel extends PreferenceActivity implements
 			upstreamProxyText.setEnabled(true);
 		}
 
+		if (isSocksCheck.isChecked() && isAutoSetProxyCheck.isChecked()) {
+			isAutoFullProxyCheck.setEnabled(true);
+		}
 		profileListPreference.setEnabled(true);
 		isGFWListCheck.setEnabled(true);
 		isSocksCheck.setEnabled(true);
@@ -467,6 +472,7 @@ public class SSHTunnel extends PreferenceActivity implements
 
 		isRunningCheck = (CheckBoxPreference) findPreference("isRunning");
 		isAutoSetProxyCheck = (CheckBoxPreference) findPreference("isAutoSetProxy");
+		isAutoFullProxyCheck = (CheckBoxPreference) findPreference("isAutoFullProxy");
 		isSocksCheck = (CheckBoxPreference) findPreference("isSocks");
 		isAutoConnectCheck = (CheckBoxPreference) findPreference("isAutoConnect");
 		isAutoReconnectCheck = (CheckBoxPreference) findPreference("isAutoReconnect");
@@ -857,10 +863,13 @@ public class SSHTunnel extends PreferenceActivity implements
 
 		if (key.equals("isSocks")) {
 			if (settings.getBoolean("isSocks", false)) {
+				if (settings.getBoolean("isAutoSetProxy", false))
+					isAutoFullProxyCheck.setEnabled(true);
 				isSocksCheck.setChecked(true);
 				remotePortText.setEnabled(false);
 				remoteAddressText.setEnabled(false);
 			} else {
+				isAutoFullProxyCheck.setEnabled(false);
 				isSocksCheck.setChecked(false);
 				remotePortText.setEnabled(true);
 				remoteAddressText.setEnabled(true);
@@ -895,9 +904,12 @@ public class SSHTunnel extends PreferenceActivity implements
 		if (key.equals("isAutoSetProxy")) {
 			if (!settings.getBoolean("isGFWList", false)) {
 				if (settings.getBoolean("isAutoSetProxy", false)) {
+					if (settings.getBoolean("isSocks", false))
+						isAutoFullProxyCheck.setEnabled(true);
 					isAutoSetProxyCheck.setChecked(true);
 					proxyedApps.setEnabled(false);
 				} else {
+					isAutoFullProxyCheck.setEnabled(false);
 					isAutoSetProxyCheck.setChecked(false);
 					proxyedApps.setEnabled(true);
 				}

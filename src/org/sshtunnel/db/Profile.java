@@ -50,6 +50,8 @@ public class Profile {
 	@DatabaseField
 	boolean isAutoSetProxy;
 	@DatabaseField
+	boolean isAutoFullProxy;
+	@DatabaseField
 	boolean isGFWList;
 	@DatabaseField
 	boolean isSocks;
@@ -80,6 +82,7 @@ public class Profile {
 		this.isAutoReconnect = false;
 		this.isAutoConnect = false;
 		this.isAutoSetProxy = false;
+		this.isAutoFullProxy = false;
 		this.isGFWList = false;
 		this.isSocks = false;
 		this.isDNSProxy = true;
@@ -157,6 +160,10 @@ public class Profile {
 		return isAutoSetProxy;
 	}
 
+	public boolean isAutoFullProxy() {
+		return isAutoFullProxy;
+	}
+
 	public boolean isGFWList() {
 		return isGFWList;
 	}
@@ -187,6 +194,10 @@ public class Profile {
 
 	public void setAutoSetProxy(boolean isAutoSetProxy) {
 		this.isAutoSetProxy = isAutoSetProxy;
+	}
+
+	public void setAutoFullProxy(boolean isAutoFullProxy) {
+		this.isAutoFullProxy = isAutoFullProxy;
 	}
 
 	public void setCompression(boolean wantCompression) {
