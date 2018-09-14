@@ -44,13 +44,17 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
 
 import org.sshtunnel.db.Profile;
 import org.sshtunnel.db.ProfileFactory;
 import org.sshtunnel.utils.Constraints;
 import org.sshtunnel.utils.Utils;
+import org.sshtunnel.ConnectivityBroadcastReceiver;
 
+import android.Manifest;
 import android.app.AlertDialog;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
@@ -63,6 +67,7 @@ import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
 import android.content.SharedPreferences.OnSharedPreferenceChangeListener;
+import android.content.pm.PackageManager;
 import android.content.pm.PackageManager.NameNotFoundException;
 import android.content.res.AssetManager;
 import android.net.ConnectivityManager;
@@ -75,6 +80,7 @@ import android.os.Message;
 import android.preference.CheckBoxPreference;
 import android.preference.EditTextPreference;
 import android.preference.ListPreference;
+import android.preference.MultiSelectListPreference;
 import android.preference.Preference;
 import android.preference.PreferenceActivity;
 import android.preference.PreferenceManager;
@@ -88,8 +94,6 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.Toast;
-
-import com.ksmaze.android.preference.ListPreferenceMultiSelect;
 
 public class SSHTunnel extends PreferenceActivity implements
 		OnSharedPreferenceChangeListener {
@@ -184,7 +188,7 @@ public class SSHTunnel extends PreferenceActivity implements
 	private CheckBoxPreference isRunningCheck;
 
 	private Preference proxyedApps;
-	private ListPreferenceMultiSelect ssidListPreference;
+	private MultiSelectListPreference ssidListPreference;
 
 	private static final int MSG_UPDATE_FINISHED = 0;
 
@@ -425,8 +429,27 @@ public class SSHTunnel extends PreferenceActivity implements
 			NotificationManager notificationManager = (NotificationManager) this
                                 .getSystemService(NOTIFICATION_SERVICE);
                         notificationManager.createNotificationChannel(new NotificationChannel(CHANNEL_ID, "SSHTunnel", NotificationManager.IMPORTANCE_DEFAULT));
+			if (checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+				new AlertDialog.Builder(this)
+					.setMessage("We need location permission on Android Oreo and above for SSID-based auto connect.")
+					.setCancelable(false)
+					.setNegativeButton(getString(R.string.ok_iknow),
+						new DialogInterface.OnClickListener() {
+							@Override
+							public void onClick(DialogInterface dialog, int id) {
+								dialog.cancel();
+								requestPermissions(new String[]{Manifest.permission.ACCESS_COARSE_LOCATION}, 100);
+							}
+						}).create().show();
+			}
                 }
-		
+
+		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N){
+			IntentFilter intentFilter = new IntentFilter();
+			intentFilter.addAction(ConnectivityManager.CONNECTIVITY_ACTION);
+			registerReceiver(new ConnectivityBroadcastReceiver(), intentFilter);
+		}
+
 		addPreferencesFromResource(R.xml.main_pre);
 
 		hostText = (EditTextPreference) findPreference("host");
@@ -440,7 +463,7 @@ public class SSHTunnel extends PreferenceActivity implements
 
 		proxyedApps = findPreference("proxyedApps");
 		profileListPreference = (ListPreference) findPreference("profile_id");
-		ssidListPreference = (ListPreferenceMultiSelect) findPreference("ssid");
+		ssidListPreference = (MultiSelectListPreference) findPreference("ssid");
 
 		isRunningCheck = (CheckBoxPreference) findPreference("isRunning");
 		isAutoSetProxyCheck = (CheckBoxPreference) findPreference("isAutoSetProxy");
@@ -719,8 +742,8 @@ public class SSHTunnel extends PreferenceActivity implements
 		profileListPreference.setValue(Integer.toString(profile.getId()));
 		profileListPreference.setSummary(Utils.getProfileName(profile));
 
-		if (!settings.getString("ssid", "").equals(""))
-			ssidListPreference.setSummary(settings.getString("ssid", ""));
+		if (!settings.getStringSet("ssid", null).isEmpty())
+			ssidListPreference.setSummary(settings.getStringSet("ssid", null).toString());
 		if (!settings.getString("user", "").equals(""))
 			userText.setSummary(settings.getString("user",
 					getString(R.string.user_summary)));
@@ -755,7 +778,7 @@ public class SSHTunnel extends PreferenceActivity implements
 		userText.setText(profile.getUser());
 		passwordText.setText(profile.getPassword());
 		remoteAddressText.setText(profile.getRemoteAddress());
-		ssidListPreference.setValue(profile.getSsid());
+		ssidListPreference.setValues(profile.getSsid());
 		upstreamProxyText.setText(profile.getUpstreamProxy());
 
 		portText.setText(Integer.toString(profile.getPort()));
@@ -902,10 +925,10 @@ public class SSHTunnel extends PreferenceActivity implements
 		}
 
 		if (key.equals("ssid"))
-			if (settings.getString("ssid", "").equals(""))
+			if (settings.getStringSet("ssid", null).isEmpty())
 				ssidListPreference.setSummary(getString(R.string.ssid_summary));
 			else
-				ssidListPreference.setSummary(settings.getString("ssid", ""));
+				ssidListPreference.setSummary(settings.getStringSet("ssid", null).toString());
 		else if (key.equals("user"))
 			if (settings.getString("user", "").equals(""))
 				userText.setSummary(getString(R.string.user_summary));

@@ -148,7 +148,12 @@ public class ProfileFactory {
 		profile.password = settings.getString(Constraints.PASSWORD, "");
 		profile.remoteAddress = settings.getString(Constraints.REMOTE_ADDRESS,
 				Constraints.DEFAULT_REMOTE_ADDRESS);
-		profile.ssid = settings.getString(Constraints.SSID, "");
+		String ssid_cooked = "";
+		for (String s : settings.getStringSet(Constraints.SSID, null)) {
+			ssid_cooked += s + " , ";
+		}
+		if (ssid_cooked.length() > 3) ssid_cooked = ssid_cooked.substring(0, ssid_cooked.length() - 3);
+		profile.ssid = ssid_cooked;
 		profile.proxyedApps = settings.getString(Constraints.PROXYED_APPS, "");
 		profile.keyPath = settings.getString(Constraints.KEY_PATH,
 				Constraints.DEFAULT_KEY_PATH);
@@ -233,7 +238,7 @@ public class ProfileFactory {
 		ed.putString(Constraints.USER, profile.user);
 		ed.putString(Constraints.PASSWORD, profile.password);
 		ed.putString(Constraints.REMOTE_ADDRESS, profile.remoteAddress);
-		ed.putString(Constraints.SSID, profile.ssid);
+		ed.putStringSet(Constraints.SSID, profile.getSsid());
 		ed.putString(Constraints.KEY_PATH, profile.proxyedApps);
 		ed.putString(Constraints.KEY_PATH, profile.keyPath);
 		ed.putString(Constraints.UPSTREAM_PROXY, profile.upstreamProxy);

@@ -1,5 +1,8 @@
 package org.sshtunnel.db;
 
+import java.util.Arrays;
+import java.util.HashSet;
+
 import com.j256.ormlite.field.DatabaseField;
 
 /**
@@ -130,8 +133,8 @@ public class Profile {
 		return remotePort;
 	}
 
-	public String getSsid() {
-		return ssid;
+	public HashSet<String> getSsid() {
+		return new HashSet<String>(Arrays.asList(ssid.split(" , ")));
 	}
 
 	public String getUser() {

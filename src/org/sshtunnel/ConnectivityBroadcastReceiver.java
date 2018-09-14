@@ -1,6 +1,7 @@
 package org.sshtunnel;
 
 import java.util.List;
+import java.util.Set;
 
 import android.os.Handler;
 import org.sshtunnel.db.Profile;
@@ -21,17 +22,12 @@ import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.util.Log;
 
-import com.ksmaze.android.preference.ListPreferenceMultiSelect;
-
 public class ConnectivityBroadcastReceiver extends BroadcastReceiver {
 
     private static final String TAG = "SSHTunnel";
 
-    public String onlineSSID(Context context, String ssid) {
-        String ssids[] = ListPreferenceMultiSelect.parseStoredValue(ssid);
-        if (ssids == null)
-            return null;
-        if (ssids.length < 1)
+    public String onlineSSID(Context context, Set<String> ssids) {
+	if (ssids.isEmpty())
             return null;
         ConnectivityManager manager = (ConnectivityManager) context
                 .getSystemService(Context.CONNECTIVITY_SERVICE);
@@ -69,7 +65,6 @@ public class ConnectivityBroadcastReceiver extends BroadcastReceiver {
     @Override
     public void onReceive(final Context context, final Intent intent) {
         String action = intent.getAction();
-
         if (!action.equals(ConnectivityManager.CONNECTIVITY_ACTION)) {
             Log.w(TAG, "onReceived() called uncorrectly");
             return;
