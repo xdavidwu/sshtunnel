@@ -71,7 +71,7 @@ public class SSHTunnelReceiver {
 			bundle.putInt(Constraints.ID, profile.getId());
 
 			it.putExtras(bundle);
-			context.startService(it);
+			context.startForegroundService(it);
 		}
 	}
 
