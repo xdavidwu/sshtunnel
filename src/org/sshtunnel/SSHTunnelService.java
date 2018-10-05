@@ -84,6 +84,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Message;
+import android.os.Looper;
 import android.preference.PreferenceManager;
 import android.util.Log;
 import android.view.View;
@@ -91,6 +92,7 @@ import android.view.View.OnClickListener;
 import android.widget.Button;
 import android.widget.RemoteViews;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.trilead.ssh2.Connection;
 import com.trilead.ssh2.ConnectionMonitor;
@@ -1012,7 +1014,9 @@ public class SSHTunnelService extends Service implements ServerHostKeyVerifier,
 
 	private void onDisconnect() {
 		connected = false;
-
+		Looper.prepare();
+		Toast.makeText(this,"Tx: "+connection.tm.tc.tx_comp+"/"+connection.tm.tc.tx_orig+" "+connection.tm.tc.tx_comp/(double)connection.tm.tc.tx_orig+"\n"+"Rx: "+connection.tm.tc.rx_comp+"/"+connection.tm.tc.rx_orig+" "+connection.tm.tc.rx_comp/(double)connection.tm.tc.rx_orig+"\n"+"Total: "+(connection.tm.tc.tx_comp+connection.tm.tc.rx_comp)+"/"+(connection.tm.tc.tx_orig+connection.tm.tc.rx_orig)+" "+(connection.tm.tc.tx_comp+connection.tm.tc.rx_comp)/(double)(connection.tm.tc.tx_orig+connection.tm.tc.rx_orig),Toast.LENGTH_LONG).show();
+		Looper.loop();
 	//	try {
 			if (lpf != null) {
 				lpf.close();

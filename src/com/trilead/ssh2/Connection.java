@@ -103,7 +103,7 @@ public class Connection implements AutoCloseable
 
 	private final int port;
 
-	private TransportManager tm;
+	public TransportManager tm;
 
 	private ProxyData proxyData = null;
 

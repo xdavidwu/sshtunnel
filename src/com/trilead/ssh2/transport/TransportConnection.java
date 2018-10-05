@@ -78,6 +78,14 @@ public class TransportConnection
 
 	final SecureRandom rnd;
 
+	public long tx_orig=0;
+
+	public long tx_comp=0;
+
+	public long rx_orig=0;
+
+	public long rx_comp=0;
+
 	public TransportConnection(InputStream is, OutputStream os, SecureRandom rnd)
 	{
 		this.cis = new CipherInputStream(new NullCipher(), is);
@@ -151,6 +159,7 @@ public class TransportConnection
 
 	public void sendMessage(byte[] message, int off, int len, int padd) throws IOException
 	{
+		tx_orig+=len;
 		if (padd < 4)
 			padd = 4;
 		else if (padd > 64)
@@ -163,6 +172,7 @@ public class TransportConnection
 			message = send_comp_buffer;
 		}
 
+		tx_comp+=len;
 		boolean encryptThenMac = send_mac != null && send_mac.isEncryptThenMac();
 
 		int encryptedPacketLength = (encryptThenMac ? 1 : 5) + len + padd; /* Minimum allowed padding is 4 */
@@ -308,16 +318,19 @@ public class TransportConnection
 					+ " bytes payload");
 		}
 
+		rx_orig+=payloadLength;
 		if (recv_comp != null && can_recv_compress) {
 			int[] uncomp_len = new int[] { payloadLength };
 			buffer = recv_comp.uncompress(buffer, off, uncomp_len);
 			
+			rx_comp+=payloadLength;
 			if (buffer == null) {
 				throw new IOException("Error while inflating remote data");
 			} else {
 				return uncomp_len[0];
 			}
 		} else {
+			rx_comp+=payloadLength;
 			return payloadLength;
 		}
 	}

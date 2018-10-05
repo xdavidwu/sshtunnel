@@ -129,7 +129,7 @@ public class TransportManager
 
 	Throwable reasonClosedCause = null;
 
-	TransportConnection tc;
+	public TransportConnection tc;
 	KexManager km;
 
 	Vector<HandlerEntry> messageHandlers = new Vector<HandlerEntry>();
