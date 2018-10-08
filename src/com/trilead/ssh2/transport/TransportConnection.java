@@ -318,19 +318,19 @@ public class TransportConnection
 					+ " bytes payload");
 		}
 
-		rx_orig+=payloadLength;
+		rx_comp+=payloadLength;
 		if (recv_comp != null && can_recv_compress) {
 			int[] uncomp_len = new int[] { payloadLength };
 			buffer = recv_comp.uncompress(buffer, off, uncomp_len);
 			
-			rx_comp+=payloadLength;
 			if (buffer == null) {
 				throw new IOException("Error while inflating remote data");
 			} else {
+				rx_orig+=uncomp_len[0];
 				return uncomp_len[0];
 			}
 		} else {
-			rx_comp+=payloadLength;
+			rx_orig+=payloadLength;
 			return payloadLength;
 		}
 	}
