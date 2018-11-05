@@ -1014,35 +1014,34 @@ public class SSHTunnelService extends Service implements ServerHostKeyVerifier,
 
 	private void onDisconnect() {
 		connected = false;
-		Looper.prepare();
-		Toast.makeText(this,"Tx: "+connection.tm.tc.tx_comp+"/"+connection.tm.tc.tx_orig+" "+connection.tm.tc.tx_comp/(double)connection.tm.tc.tx_orig+"\n"+"Rx: "+connection.tm.tc.rx_comp+"/"+connection.tm.tc.rx_orig+" "+connection.tm.tc.rx_comp/(double)connection.tm.tc.rx_orig+"\n"+"Total: "+(connection.tm.tc.tx_comp+connection.tm.tc.rx_comp)+"/"+(connection.tm.tc.tx_orig+connection.tm.tc.rx_orig)+" "+(connection.tm.tc.tx_comp+connection.tm.tc.rx_comp)/(double)(connection.tm.tc.tx_orig+connection.tm.tc.rx_orig),Toast.LENGTH_LONG).show();
-		Looper.loop();
-	//	try {
-			if (lpf != null) {
-				lpf.close();
-				lpf = null;
-			}
-	//	} catch (IOException ignore) {
-			// Nothing
-	//	}
-	//	try {
-			if (dpf != null) {
-				dpf.close();
-				dpf = null;
-			}
-	//	} catch (IOException ignore) {
-			// Nothing
-	//	}
-	//	try {
-			if (dnspf != null) {
-				dnspf.close();
-				dnspf = null;
-			}
-	//	} catch (IOException ignore) {
-			// Nothing
-	//	}
+
+		if (lpf != null) {
+			lpf.close();
+			lpf = null;
+		}
+
+		if (dpf != null) {
+			dpf.close();
+			dpf = null;
+		}
+
+		if (dnspf != null) {
+			dnspf.close();
+			dnspf = null;
+		}
 
 		if (connection != null) {
+			Looper.prepare();
+			Toast.makeText(this,"Tx: "+connection.tm.tc.tx_comp+"/"+connection.tm.tc.tx_orig
+					+" "+connection.tm.tc.tx_comp/(double)connection.tm.tc.tx_orig+"\n"
+					+"Rx: "+connection.tm.tc.rx_comp+"/"+connection.tm.tc.rx_orig+" "
+					+connection.tm.tc.rx_comp/(double)connection.tm.tc.rx_orig+"\n"
+					+"Total: "+(connection.tm.tc.tx_comp+connection.tm.tc.rx_comp)+"/"
+					+(connection.tm.tc.tx_orig+connection.tm.tc.rx_orig)+" "
+					+(connection.tm.tc.tx_comp+connection.tm.tc.rx_comp)/
+					(double)(connection.tm.tc.tx_orig+connection.tm.tc.rx_orig)
+					,Toast.LENGTH_LONG).show();
+			Looper.loop();
 			connection.close();
 			connection = null;
 		}
