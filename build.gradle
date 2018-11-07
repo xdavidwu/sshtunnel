@@ -1,0 +1,54 @@
+buildscript {
+    repositories {
+        jcenter()
+        google()
+    }
+    dependencies {
+        classpath 'com.android.tools.build:gradle:3.2.1'
+    }
+}
+
+allprojects {
+    repositories {
+        jcenter()
+        google()
+    }
+}
+
+apply plugin: 'com.android.application'
+
+android {
+    sourceSets {
+        main {
+            java.srcDirs = ['src']
+            res.srcDirs = ['res']
+            assets.srcDirs = ['assets']
+            manifest.srcFile 'AndroidManifest.xml'
+        }
+    }
+    
+    compileSdkVersion 28
+    buildToolsVersion "28.0.3"
+
+    defaultConfig {
+        applicationId "org.sshtunnel"
+        minSdkVersion 19
+        targetSdkVersion 28
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.txt'
+        }
+    }
+
+    lintOptions {
+        abortOnError false
+    }
+}
+
+dependencies {
+    implementation files('libs/ormlite-android-4.43.jar')
+    implementation files('libs/ormlite-core-4.43.jar')
+}
