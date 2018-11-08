@@ -261,6 +261,6 @@ public class ProfileFactory {
 		ed.putBoolean(Constraints.IS_UPSTREAM_PROXY, profile.isUpstreamProxy);
 		ed.putBoolean(Constraints.WANT_COMPRESSION, profile.wantCompression);
 
-		ed.commit();
+		ed.apply();
 	}
 }

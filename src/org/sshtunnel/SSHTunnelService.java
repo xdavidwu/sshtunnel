@@ -315,7 +315,7 @@ public class SSHTunnelService extends Service implements ServerHostKeyVerifier,
 				}
 				break;
 			}
-			ed.commit();
+			ed.apply();
 			super.handleMessage(msg);
 		}
 	};

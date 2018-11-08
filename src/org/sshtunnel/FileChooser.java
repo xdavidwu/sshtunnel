@@ -64,7 +64,7 @@ public class FileChooser extends ListActivity {
 				.getDefaultSharedPreferences(this);
 		Editor ed = settings.edit();
 		ed.putString(Constraints.KEY_PATH, o.getPath());
-		ed.commit();
+		ed.apply();
 		Toast.makeText(this, getString(R.string.file_toast) + o.getPath(),
 				Toast.LENGTH_SHORT).show();
 		finish();

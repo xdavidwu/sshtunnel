@@ -122,7 +122,7 @@ public class ConnectivityBroadcastReceiver extends BroadcastReceiver {
 
                         Editor ed = settings.edit();
                         ed.putString("lastSSID", curSSID);
-                        ed.commit();
+                        ed.apply();
 
                         Utils.notifyConnect();
 

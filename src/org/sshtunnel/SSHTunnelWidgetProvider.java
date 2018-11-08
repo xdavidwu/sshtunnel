@@ -90,7 +90,7 @@ public class SSHTunnelWidgetProvider extends AppWidgetProvider {
 			
 			ed.putBoolean("isSwitching", true);
 			
-			ed.commit();
+			ed.apply();
 			
 			RemoteViews views = new RemoteViews(context.getPackageName(),
 					R.layout.sshtunnel_appwidget);

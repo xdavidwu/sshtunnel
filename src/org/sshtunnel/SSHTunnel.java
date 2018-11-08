@@ -266,7 +266,7 @@ public class SSHTunnel extends PreferenceActivity implements
 					.getDefaultSharedPreferences(this);
 			Editor ed = settings.edit();
 			ed.putString(Constraints.ID, Integer.toString(id));
-			ed.commit();
+			ed.apply();
 
 			// change the profile list value
 			profileListPreference.setValue(Integer.toString(id));
@@ -820,7 +820,7 @@ public class SSHTunnel extends PreferenceActivity implements
 				String profileId = Integer.toString(profile.getId());
 				Editor ed = settings.edit();
 				ed.putString(Constraints.ID, profileId);
-				ed.commit();
+				ed.apply();
 
 				// change profile list value
 				profileListPreference.setValue(profileId);
@@ -1054,7 +1054,7 @@ public class SSHTunnel extends PreferenceActivity implements
 								Editor ed = settings.edit();
 								ed.putString(Constraints.NAME,
 										profile.getName());
-								ed.commit();
+								ed.apply();
 
 								profileListPreference.setSummary(Utils
 										.getProfileName(profile));
