@@ -7,7 +7,8 @@ public class SSHTunnelContext extends Application {
         private static Context context;
 
         public void onCreate() {
-                SSHTunnelContext.context = getApplicationContext();
+                super.onCreate();
+		SSHTunnelContext.context = getApplicationContext();
         }
 
         public static Context getAppContext() {
