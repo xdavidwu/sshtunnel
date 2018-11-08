@@ -375,7 +375,7 @@ public class SSHTunnel extends PreferenceActivity implements
 	}
 
     private void loadNetworkList() {
-        WifiManager wm = (WifiManager) this
+        WifiManager wm = (WifiManager) this.getApplicationContext()
                 .getSystemService(Context.WIFI_SERVICE);
         List<WifiConfiguration> wcs = wm.getConfiguredNetworks();
         String[] ssidEntries = null;
