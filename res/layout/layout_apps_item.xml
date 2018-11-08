@@ -6,13 +6,14 @@
 	<TableRow>
 		<ImageView android:id="@+id/itemicon" android:layout_width="48sp"
 			android:layout_height="48sp" android:scaleType="fitCenter"
-			android:padding="3dip"></ImageView>
+			android:layout_marginLeft="16dp" android:paddingTop="4dp"
+			android:paddingBottom="4dp" ></ImageView>
 
 		<TextView android:layout_height="wrap_content" android:id="@+id/itemtext"
-			android:text="uid:packages" android:maxLength="25" android:textSize="18sp" android:padding="3dip"></TextView>
+			android:text="uid:packages" android:maxLength="25" android:textSize="18sp" android:padding="4dp"></TextView>
 
-		<CheckBox android:layout_width="wrap_content"
-			android:layout_height="wrap_content" android:id="@+id/itemcheck"></CheckBox>
+		<CheckBox android:layout_width="wrap_content" android:paddingRight="16dp"
+			android:layout_height="fill_parent" android:id="@+id/itemcheck"></CheckBox>
 
 	</TableRow>
 </TableLayout>

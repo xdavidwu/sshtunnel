@@ -4,7 +4,8 @@
 	android:orientation="vertical" android:duplicateParentState="false">
 	<TextView android:text="@string/proxyed_help"
 		android:layout_width="fill_parent" android:layout_height="wrap_content"
-		android:textSize="16sp" android:padding="3px" />
+		android:textSize="14sp" android:paddingTop="8dp" android:paddingBottom="8dp"
+		android:paddingLeft="16dp" android:paddingRight="16dp" />
 	<ListView android:layout_width="fill_parent"
 		android:layout_height="wrap_content" android:id="@+id/applistview"></ListView>
 </LinearLayout>
