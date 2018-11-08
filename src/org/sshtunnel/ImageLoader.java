@@ -12,7 +12,11 @@ import android.app.Activity;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Canvas;
+import android.graphics.drawable.AdaptiveIconDrawable;
 import android.graphics.drawable.BitmapDrawable;
+import android.graphics.drawable.Drawable;
+import android.os.Build;
 import android.widget.ImageView;
 
 public class ImageLoader {
@@ -187,9 +191,15 @@ public class ImageLoader {
 
 		// from web
 		try {
-			BitmapDrawable icon = (BitmapDrawable) Utils.getAppIcon(context,
-					uid);
-			return icon.getBitmap();
+			Drawable draw=Utils.getAppIcon(context,uid);
+			if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && draw instanceof AdaptiveIconDrawable){
+				Bitmap bmp = Bitmap.createBitmap(draw.getIntrinsicWidth(), draw.getIntrinsicHeight(), Bitmap.Config.ARGB_8888);
+				Canvas canvas = new Canvas(bmp);
+				draw.setBounds(0, 0, canvas.getWidth(), canvas.getHeight());
+				draw.draw(canvas);
+				return bmp;
+			}
+			else return ((BitmapDrawable) draw).getBitmap();
 		} catch (Exception ex) {
 			return null;
 		}
