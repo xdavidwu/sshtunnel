@@ -102,8 +102,8 @@
 		and IPTABLES support)
 	</string>
 	<string name="auto_full_proxy">Full Proxy</string>
-	<string name="auto_full_proxy_summary">Auto redirect all tcp traffic to proxy (needs "Global
-		Proxy" and using SOCKS)
+	<string name="auto_full_proxy_summary">Auto redirect all tcp traffic to proxy (needs \"Global
+		Proxy\" and using SOCKS)
 	</string>
 	<string name="enable_market">Enable Market</string>
 	<string name="enable_market_summary">Only for users in China, help to update app from
