@@ -1,7 +1,0 @@
-
-syntax: regexp
-bin/*
-local.properties
-.idea/*
-sshtunnel.iml
-gen/*
