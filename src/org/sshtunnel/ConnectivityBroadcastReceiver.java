@@ -43,7 +43,7 @@ public class ConnectivityBroadcastReceiver extends BroadcastReceiver {
             }
             return null;
         }
-        WifiManager wm = (WifiManager) context
+        WifiManager wm = (WifiManager) context.getApplicationContext()
                 .getSystemService(Context.WIFI_SERVICE);
         WifiInfo wInfo = wm.getConnectionInfo();
         if (wInfo == null)
