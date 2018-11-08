@@ -45,6 +45,7 @@ import org.sshtunnel.utils.Utils;
 
 import android.content.Context;
 import android.content.Intent;
+import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
 
@@ -71,7 +72,8 @@ public class SSHTunnelReceiver {
 			bundle.putInt(Constraints.ID, profile.getId());
 
 			it.putExtras(bundle);
-			context.startForegroundService(it);
+			if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) context.startForegroundService(it);
+			else context.startService(it);
 		}
 	}
 
