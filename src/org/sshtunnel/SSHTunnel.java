@@ -455,6 +455,22 @@ public class SSHTunnel extends PreferenceActivity implements
 			registerReceiver(new ConnectivityBroadcastReceiver(), intentFilter);
 		}
 
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M){
+			if (checkSelfPermission(Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+				new AlertDialog.Builder(this)
+					.setMessage("We need external storage permission for key-based authentication.")
+					.setCancelable(false)
+					.setNegativeButton(getString(R.string.ok_iknow),
+						new DialogInterface.OnClickListener() {
+							@Override
+							public void onClick(DialogInterface dialog, int id) {
+								dialog.cancel();
+								requestPermissions(new String[]{Manifest.permission.READ_EXTERNAL_STORAGE}, 100);
+							}
+						}).create().show();
+			}
+                }
+
 		addPreferencesFromResource(R.xml.main_pre);
 
 		hostText = (EditTextPreference) findPreference("host");
