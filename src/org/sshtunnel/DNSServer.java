@@ -15,6 +15,8 @@ import java.net.*;
 import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.Random;
+import java.util.regex.Pattern;
+import java.util.regex.Matcher;
 
 /**
  * 此类封装了一个Dns回应
@@ -475,17 +477,8 @@ public class DNSServer implements WrapServer {
 
         InputStream is;
 
-        String encode_host = URLEncoder.encode(Base64.encodeBytes(Base64
-                .encodeBytesToBytes(domain.getBytes())));
-
-        String url = "http://gaednsproxy.appspot.com:" + dnsPort + "/?d="
-                + encode_host;
-
-        Random random = new Random(System.currentTimeMillis());
-        int n = random.nextInt(2);
-        if (n == 1)
-            url = "http://gaednsproxy1.appspot.com:" + dnsPort + "/?d="
-                    + encode_host;
+        String url = "http://80.92.90.248/api/dns/8.8.8.8/IN/"
+                + domain + "/A";
 
         try {
             URL aURL = new URL(url);
@@ -495,7 +488,10 @@ public class DNSServer implements WrapServer {
             conn.connect();
             is = conn.getInputStream();
             BufferedReader br = new BufferedReader(new InputStreamReader(is));
-            ip = br.readLine();
+            String tmp = br.readLine();
+	    Pattern p = Pattern.compile("\"type\":\"A\",\"class\":\"IN\",\"ttl\":([0-9]*),\"rdata\":\"(.*)\"");
+	    Matcher m = p.matcher(tmp);
+	    if (m.find()) ip = m.group(2);
         } catch (SocketException e) {
             Log.e(TAG, "Failed to request URI: " + url, e);
         } catch (IOException e) {
