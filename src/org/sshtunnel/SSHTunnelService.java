@@ -184,10 +184,13 @@ public class SSHTunnelService extends Service implements ServerHostKeyVerifier,
 	final static String CMD_IPTABLES_DNAT_ADD_SOCKS = BASE
 			+ "iptables -t nat -A SSHTUNNEL -p tcp --dport 5228 -j DNAT --to-destination 127.0.0.1:8123\n";
 	final static String CMD_IPTABLES_REDIRECT_ADD_FULL = BASE
-			+ "iptables -t nat -A SSHTUNNEL -p tcp ! --dport 1984 -j REDIRECT --to 8123\n";
+			+ "iptables -t nat -A SSHTUNNEL -p tcp -j REDIRECT --to 8123\n";
 
 	final static String CMD_IPTABLES_DNAT_ADD_FULL = BASE
-			+ "iptables -t nat -A SSHTUNNEL -p tcp ! --dport 1984 -j DNAT --to-destination 127.0.0.1:8123\n";
+			+ "iptables -t nat -A SSHTUNNEL -p tcp -j DNAT --to-destination 127.0.0.1:8123\n";
+
+	final static String CMD_IPTABLES_RETURN_LOCAL = BASE
+			+ "iptables -t nat -A SSHTUNNEL -d 127.0.0.1/8 -j RETURN\n";
 
 
 	public static boolean runRootCommand(String command) {
@@ -673,6 +676,7 @@ public class SSHTunnelService extends Service implements ServerHostKeyVerifier,
 
 		cmd.append(BASE + "iptables -t nat -N SSHTUNNEL\n");
 		cmd.append(BASE + "iptables -t nat -F SSHTUNNEL\n");
+		cmd.append(CMD_IPTABLES_RETURN_LOCAL);
 
 		if (enableDNSProxy) {
 
