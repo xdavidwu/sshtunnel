@@ -68,16 +68,17 @@
 
 	<!-- settings port forwarding category -->
 	<string name="socks">Use socks proxy</string>
-	<string name="socks_summary">Enable dynamic port forwarding， redirect all ports
+	<string name="socks_summary">Enable dynamic port forwarding, redirect port 80, 443, 
+		5228 (Google Play)
 	</string>
 	<string name="port_cat">Port Forwarding</string>
 	<string name="local_port">Local Port</string>
 	<string name="local_port_summary">Listening Port, default 1984</string>
 	<string name="remote_address">Remote Address</string>
-	<string name="remote_address_summary">Remote forwarding address，default 127.0.0.1
+	<string name="remote_address_summary">Remote forwarding address, default 127.0.0.1
 	</string>
 	<string name="remote_port">Remote Port</string>
-	<string name="remote_port_summary">Remote forwarding port，default 3128</string>
+	<string name="remote_port_summary">Remote forwarding port, default 3128</string>
 
 	<!-- settings feature category -->
 	<string name="fearute_cat">Feature Settings</string>
