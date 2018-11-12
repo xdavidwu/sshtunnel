@@ -63,7 +63,8 @@ public class Profile {
 	boolean isUpstreamProxy;
 	@DatabaseField
 	boolean wantCompression;
-
+	@DatabaseField
+	boolean listenOnAll;
 
 	Profile() {
 		// needed by ormlite
@@ -94,6 +95,7 @@ public class Profile {
 		this.fingerPrint = "";
 		this.fingerPrintType = "";
 		this.wantCompression = true;
+		this.listenOnAll = false;
 	}
 
 	public String getHost() {
@@ -216,6 +218,10 @@ public class Profile {
 		this.isActive = isActive;
 	}
 	
+	public void setListenOnAll(boolean listenOnAll){
+		this.listenOnAll = listenOnAll;
+	}
+
 	public void setIsUpstreamProxy(boolean isUpstreamProxy) {
 		this.isUpstreamProxy = isUpstreamProxy;
 	}
@@ -276,7 +282,6 @@ public class Profile {
 		this.upstreamProxy = upstreamProxy;
 	}
 	
-	
 	public String getFingerPrint() {
 		return fingerPrint;
 	}
@@ -309,5 +314,9 @@ public class Profile {
 
 	public boolean wantCompression(){
 		return wantCompression;
+	}
+
+	public boolean listenOnAll(){
+		return listenOnAll;
 	}
 }

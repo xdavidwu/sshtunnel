@@ -13,7 +13,6 @@ public class Constraints {
 	public static final String PROXYED_APPS = "proxyedApps";
 	public static final String UPSTREAM_PROXY = "upstreamProxy";
 	
-	
 	public static final String IS_AUTO_RECONNECT = "isAutoReconnect";
 	public static final String IS_AUTO_CONNECT = "isAutoConnect";
 	public static final String IS_AUTO_SETPROXY = "isAutoSetProxy";
@@ -24,6 +23,7 @@ public class Constraints {
 	public static final String IS_ACTIVE = "isActive";
 	public static final String IS_UPSTREAM_PROXY = "isUpstreamProxy";
 	public static final String WANT_COMPRESSION = "wantCompression";
+	public static final String LISTEN_ON_ALL = "listenOnAll";
 	
 	public static final String PORT = "port";
 	public static final String REMOTE_PORT = "remotePort";

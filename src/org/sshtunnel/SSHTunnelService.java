@@ -50,6 +50,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.HttpURLConnection;
 import java.net.InetAddress;
+import java.net.InetSocketAddress;
 import java.net.URL;
 import java.net.UnknownHostException;
 import java.text.SimpleDateFormat;
@@ -623,28 +624,36 @@ public class SSHTunnelService extends Service implements ServerHostKeyVerifier,
 
 	public boolean enablePortForward() {
 
-		/*
-		 * DynamicPortForwarder dpf = null;
-		 * 
-		 * try { dpf = connection.createDynamicPortForwarder(new
-		 * InetSocketAddress( InetAddress.getLocalHost(), 1984)); } catch
-		 * (Exception e) { Log.e(TAG, "Could not create dynamic port forward",
-		 * e); return false; }
-		 */
-
-		// LocalPortForwarder lpf1 = null;
 		try {
 
-			dnspf = connection.createLocalPortForwarder(8053, "www.google.com",
-					80);
+			if (profile.listenOnAll()){
+				dnspf = connection.createLocalPortForwarder(8053, "www.google.com",
+						80);
 
-			if (profile.isSocks()) {
-				dpf = connection.createDynamicPortForwarder(profile
-						.getLocalPort());
-			} else {
-				lpf = connection.createLocalPortForwarder(
-						profile.getLocalPort(), profile.getRemoteAddress(),
-						profile.getRemotePort());
+				if (profile.isSocks()) {
+					dpf = connection.createDynamicPortForwarder(profile
+							.getLocalPort());
+				} else {
+					lpf = connection.createLocalPortForwarder(
+							profile.getLocalPort(), profile.getRemoteAddress(),
+							profile.getRemotePort());
+				}
+			}
+			else {
+				InetAddress localAddr = InetAddress.getByAddress(new byte[]{0x7f, 0x00, 0x00, 0x01});
+
+				dnspf = connection.createLocalPortForwarder(new InetSocketAddress(localAddr, 8053),
+						"www.google.com", 80);
+
+				if (profile.isSocks()) {
+					dpf = connection.createDynamicPortForwarder(new
+							InetSocketAddress(localAddr, profile.getLocalPort()));
+				} else {
+					lpf = connection.createLocalPortForwarder(new
+							InetSocketAddress(localAddr, profile.getLocalPort()),
+							profile.getRemoteAddress(), profile.getRemotePort());
+				}
+		
 			}
 
 		} catch (Exception e) {

@@ -34,7 +34,8 @@
 		<EditTextPreference android:title="@string/remote_port"
 			android:key="remotePort" android:summary="@string/remote_port_summary"
 			android:defaultValue="3128"></EditTextPreference>
-
+		<CheckBoxPreference android:summary="@string/listen_on_all_summary"
+			android:title="@string/listen_on_all" android:key="listenOnAll"></CheckBoxPreference>
 
 	</PreferenceCategory>
 	<PreferenceCategory android:title="@string/fearute_cat">
