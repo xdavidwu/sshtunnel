@@ -484,14 +484,17 @@ public class DNSServer implements WrapServer {
             URL aURL = new URL(url);
             HttpURLConnection conn = (HttpURLConnection) aURL.openConnection();
             conn.setConnectTimeout(2000);
-            conn.setConnectTimeout(5000);
             conn.connect();
             is = conn.getInputStream();
             BufferedReader br = new BufferedReader(new InputStreamReader(is));
             String tmp = br.readLine();
-	    Pattern p = Pattern.compile("\"type\":\"A\",\"class\":\"IN\",\"ttl\":([0-9]*),\"rdata\":\"(.*)\"");
+	    Log.d(TAG, "Get response: " + tmp);
+	    Pattern p = Pattern.compile("\"type\":\"A\",\"class\":\"IN\",\"ttl\":([0-9]*?),\"rdata\":\"([\\.0-9]*?)\"");
 	    Matcher m = p.matcher(tmp);
-	    if (m.find()) ip = m.group(2);
+	    if (m.find()){
+		    Log.d(TAG, "Regex matches");
+		    ip = m.group(2);
+	    }
         } catch (SocketException e) {
             Log.e(TAG, "Failed to request URI: " + url, e);
         } catch (IOException e) {
