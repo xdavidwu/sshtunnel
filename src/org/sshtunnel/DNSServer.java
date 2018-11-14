@@ -5,8 +5,8 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
 import android.util.Log;
+import org.apache.commons.validator.routines.DomainValidator;
 import org.sshtunnel.utils.Base64;
-import org.sshtunnel.utils.DomainValidator;
 import org.sshtunnel.utils.InnerSocketBuilder;
 import org.sshtunnel.utils.Utils;
 
