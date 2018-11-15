@@ -34,7 +34,7 @@
         <activity
                 android:name=".FingerPrintDialog"
                 android:label="@string/finger_print_alert_title"
-                android:theme="@android:style/Theme.Dialog"/>
+                android:theme="@android:style/Theme.DeviceDefault.Dialog"/>
 
         <service
                 android:enabled="true"
