@@ -110,9 +110,12 @@ public class DNSServer implements Runnable {
     private final String CACHE_FILE = "/dnscache";
     final private int[] DNS_HEADERS = {0, 0, 0x81, 0x80, 0, 0, 0, 0, 0, 0, 0,
             0};
-    final private int[] DNS_PAYLOAD = {0xc0, 0x0c, 0x00, 0x01, 0x00, 0x01,
-            0x00, 0x00, 0x00, 0x3c, 0x00, 0x04};
+    final private int[] DNS_PAYLOAD = {0xc0, 0x0c, 0x00}; //0x01, NAME and first byte of TYPE
+    final private int[] DNS_PAYLOAD_2 = {0x00, 0x01, 0x00, 0x00, 0x00, 0x3c, 0x00};
+    					//--CLASS-- -----------TTL--------- RDLENGTH first byte
     final private int IP_SECTION_LEN = 4;
+    final private int TYPE_A = 0x01;
+    final private int TYPE_AAAA = 0x1c;
     public HashSet<String> domains;
     protected Context context;
     private String homePath;
@@ -165,7 +168,7 @@ public class DNSServer implements Runnable {
      * DOMAIN NAMES - IMPLEMENTATION AND SPECIFICATION
      * http://www.ietf.org/rfc/rfc1035.txt
      */
-    protected byte[] createDNSResponse(byte[] quest, byte[] ips) {
+    protected byte[] createDNSResponse(byte[] quest, byte[] ips, int type) {
         byte[] response = null;
         int start = 0;
 
@@ -187,6 +190,7 @@ public class DNSServer implements Runnable {
 		response[3] = (byte) 0x83; // name error 3 in RCODE
 		response[6] = (byte) 0x00; // clear ANCOUNT
 		response[7] = (byte) 0x00;
+		Log.e(TAG, "NXDOMAIN TYPE: " + type);
 	}
 	else {
 
@@ -194,6 +198,18 @@ public class DNSServer implements Runnable {
 			response[start] = (byte) val;
 			start++;
 		}
+		response[start] = (byte) type;
+		start++;
+
+		for (int val : DNS_PAYLOAD_2) {
+			response[start] = (byte) val;
+			start++;
+		}
+		/* RFC 1035: name is 255 octets or less, which is our max
+		 * so edit last 1 byte of RDLENGTH should be enough */
+		Log.d(TAG, "TYPE: " + type + " RDLENGTH: " + ips.length);
+		response[start] = (byte) ips.length;
+		start++;
 
 		/* IP address in response */
 		for (byte ip : ips) {
@@ -208,7 +224,7 @@ public class DNSServer implements Runnable {
         return result;
     }
 
-    public byte[] fetchAnswerHTTP(byte[] quest) {
+    public byte[] fetchAnswerHTTP(byte[] quest, int type) {
         byte[] result = null;
         String domain = getRequestDomain(quest);
         String ip = null;
@@ -216,12 +232,14 @@ public class DNSServer implements Runnable {
         DomainValidator dv = DomainValidator.getInstance();
 
 		/* Not support reverse domain name query */
-        if (domain.endsWith("in-addr.arpa") || !dv.isValid(domain)) {
-            return createDNSResponse(quest, parseIPString("127.0.0.1"));
+        if (domain.endsWith("in-addr.arpa") || domain.endsWith("ip6.arpa") || !dv.isValid(domain)) {
+            return createDNSResponse(quest, parseIPString("127.0.0.1"), TYPE_A);
             // return null;
         }
 
-        ip = resolveDomainName(domain);
+	if (type != TYPE_AAAA) type = TYPE_A;
+
+        ip = resolveDomainName(domain,type);
 
         if (ip == null) {
             Log.e(TAG, "Failed to resolve domain name: " + domain);
@@ -229,12 +247,23 @@ public class DNSServer implements Runnable {
         }
 
         if (ip.equals(CANT_RESOLVE)) {
-            return createDNSResponse(quest, null);
+            return createDNSResponse(quest, null, type);
         }
 
-        byte[] ips = parseIPString(ip);
+	byte[] ips = null;
+
+        if (type == TYPE_A) ips = parseIPString(ip);
+	else if (type == TYPE_AAAA) {
+		try {
+			ips = InetAddress.getByName(ip).getAddress();
+		}
+		catch (UnknownHostException e) {
+			Log.e(TAG, e.getLocalizedMessage(), e);
+		}
+	}
+
         if (ips != null) {
-            result = createDNSResponse(quest, ips);
+            result = createDNSResponse(quest, ips, type);
         }
 
         return result;
@@ -401,20 +430,18 @@ public class DNSServer implements Runnable {
     }
 
     /*
-     * Resolve host name by access a DNSRelay running on GAE:
+     * Resolve host name by dotnul.com:
      *
-     * Example:
-     *
-     * http://www.hosts.dotcloud.com/lookup.php?(domain name encoded)
-     * http://gaednsproxy.appspot.com/?d=(domain name encoded)
      */
-    private String resolveDomainName(String domain) {
+    private String resolveDomainName(String domain, int type) {
         String ip = null;
 
         InputStream is;
 
         String url = "http://80.92.90.248/api/dns/8.8.8.8/IN/"
-                + domain + "/A";
+                + domain;
+	if (type == TYPE_A) url += "/A";
+	else if (type == TYPE_AAAA) url += "/AAAA";
 
         try {
             URL aURL = new URL(url);
@@ -425,7 +452,10 @@ public class DNSServer implements Runnable {
             BufferedReader br = new BufferedReader(new InputStreamReader(is));
             String tmp = br.readLine();
 	    Log.d(TAG, "Get response: " + tmp);
-	    Pattern p = Pattern.compile("\"type\":\"A\",\"class\":\"IN\",\"ttl\":([0-9]*?),\"rdata\":\"([\\.0-9]*?)\"");
+	    String ps = "\"type\":\"";
+	    if (type == TYPE_A) ps += "A";
+	    else if (type == TYPE_AAAA) ps += "AAAA";
+	    Pattern p = Pattern.compile(ps + "\",\"class\":\"IN\",\"ttl\":([0-9]*?),\"rdata\":\"(.*?)\"");
 	    Matcher m = p.matcher(tmp);
 	    if (m.find()){
 		    Log.d(TAG, "Regex matches");
@@ -477,17 +507,25 @@ public class DNSServer implements Runnable {
                 // 连接外部DNS进行解析。
 
                 byte[] data = dnsq.getData();
-                int dnsqLength = dnsq.getLength();
+                //int dnsqLength = dnsq.getLength();
+
+		// find the end of question section, ignore others below
+		int idx = 12;
+		while (data[idx] != 0x00) idx++; // end of QNAME
+		final int dnsqLength = idx + 4 + 1;
+		
+		if (dnsqLength != dnsq.getLength()) Log.d(TAG, "Extra sections ignored");
+
                 final byte[] udpreq = new byte[dnsqLength];
                 System.arraycopy(data, 0, udpreq, 0, dnsqLength);
                 // 尝试从缓存读取域名解析
-                final String questDomain = getRequestDomain(udpreq);
+                final String questDomain = getRequestDomain(data);
 
                 Log.d(TAG, "Resolve: " + questDomain + " QTYPE: " + udpreq[dnsqLength-4] + udpreq[dnsqLength-3]);
 
-                if (dnsCache.containsKey(questDomain)) {
+                if (dnsCache.containsKey(questDomain + udpreq[dnsqLength-3])) {
 
-                    sendDns(dnsCache.get(questDomain).getDnsResponse(), dnsq,
+                    sendDns(dnsCache.get(questDomain + udpreq[dnsqLength-3]).getDnsResponse(), dnsq,
                             srvSocket);
 
                 } else {
@@ -509,9 +547,9 @@ public class DNSServer implements Runnable {
                             long startTime = System.currentTimeMillis();
                             try {
                                 byte[] answer;
-                                answer = fetchAnswerHTTP(udpreq);
+                                answer = fetchAnswerHTTP(udpreq, udpreq[dnsqLength-3]);
                                 if (answer != null && answer.length != 0) {
-                                    addToCache(questDomain, answer);
+                                    addToCache(questDomain + udpreq[dnsqLength-3], answer);
                                     sendDns(answer, dnsq, srvSocket);
                                     Log.d(TAG, "DNS response, length: "
                                             + answer.length
