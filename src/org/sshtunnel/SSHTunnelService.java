@@ -151,7 +151,6 @@ public class SSHTunnelService extends Service implements ServerHostKeyVerifier,
 
 	// Port forwarding
 	private LocalPortForwarder lpf = null;
-	private LocalPortForwarder dnspf = null;
 	private DynamicPortForwarder dpf = null;
 
 	// Connecting / Stopping lock
@@ -627,9 +626,6 @@ public class SSHTunnelService extends Service implements ServerHostKeyVerifier,
 		try {
 
 			if (profile.listenOnAll()){
-				dnspf = connection.createLocalPortForwarder(8053, "www.google.com",
-						80);
-
 				if (profile.isSocks()) {
 					dpf = connection.createDynamicPortForwarder(profile
 							.getLocalPort());
@@ -641,9 +637,6 @@ public class SSHTunnelService extends Service implements ServerHostKeyVerifier,
 			}
 			else {
 				InetAddress localAddr = InetAddress.getByAddress(new byte[]{0x7f, 0x00, 0x00, 0x01});
-
-				dnspf = connection.createLocalPortForwarder(new InetSocketAddress(localAddr, 8053),
-						"www.google.com", 80);
 
 				if (profile.isSocks()) {
 					dpf = connection.createDynamicPortForwarder(new
@@ -1038,11 +1031,6 @@ public class SSHTunnelService extends Service implements ServerHostKeyVerifier,
 			dpf = null;
 		}
 
-		if (dnspf != null) {
-			dnspf.close();
-			dnspf = null;
-		}
-
 		if (connection != null) {
 			Looper.prepare();
 			Toast.makeText(this,"Tx: "+connection.tm.tc.tx_comp+"/"+connection.tm.tc.tx_orig
@@ -1087,8 +1075,7 @@ public class SSHTunnelService extends Service implements ServerHostKeyVerifier,
 
 				if (enableDNSProxy) {
 					if (dnsServer == null) {
-						dnsServer = new DNSServer("DNS Server", "127.0.0.1",
-								8053, SSHTunnelService.this);
+						dnsServer = new DNSServer(SSHTunnelService.this);
 						dnsServer.setBasePath("/data/data/org.sshtunnel");
 						dnsPort = dnsServer.init();
 					}

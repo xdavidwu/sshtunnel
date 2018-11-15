@@ -100,7 +100,7 @@ class DnsResponse implements Serializable {
  *
  * @author biaji
  */
-public class DNSServer implements WrapServer {
+public class DNSServer implements Runnable {
 
     private final static int MAX_THREAD_NUM = 5;
     private static final String CANT_RESOLVE = "Error";
@@ -114,45 +114,22 @@ public class DNSServer implements WrapServer {
             0x00, 0x00, 0x00, 0x3c, 0x00, 0x04};
     final private int IP_SECTION_LEN = 4;
     public HashSet<String> domains;
-    protected String dnsHost;
-    protected int dnsPort;
     protected Context context;
     private String homePath;
     private DatagramSocket srvSocket;
     private int srvPort = 0;
-    private String name;
     private volatile int threadNum = 0;
     private boolean inService = false;
     private Hashtable<String, DnsResponse> dnsCache = new Hashtable<String, DnsResponse>();
-    /**
-     * 内建自定义缓存
-     */
-    private Hashtable<String, String> orgCache = new Hashtable<String, String>();
-    private String target = "8.8.8.8:53";
 
-    public DNSServer(String name, String dnsHost, int dnsPort, Context context) {
-        this.name = name;
-        this.dnsHost = dnsHost;
-        this.dnsPort = dnsPort;
+    public DNSServer(Context context) {
         this.context = context;
 
         domains = new HashSet<String>();
 
-        if (dnsHost != null && !dnsHost.equals(""))
-            target = dnsHost + ":" + dnsPort;
     }
 
-    public static byte[] int2byte(int res) {
-        byte[] targets = new byte[4];
-
-        targets[0] = (byte) (res & 0xff);// 最低位
-        targets[1] = (byte) ((res >> 8) & 0xff);// 次低位
-        targets[2] = (byte) ((res >> 16) & 0xff);// 次高位
-        targets[3] = (byte) (res >>> 24);// 最高位,无符号右移。
-        return targets;
-    }
-
-    /**
+   /**
      * 在缓存中添加一个域名解析
      *
      * @param questDomainName 域名
@@ -165,7 +142,6 @@ public class DNSServer implements WrapServer {
         saveCache();
     }
 
-    @Override
     public void close() throws IOException {
         inService = false;
         if (srvSocket != null) {
@@ -232,52 +208,6 @@ public class DNSServer implements WrapServer {
         return result;
     }
 
-    /**
-     * 由上级DNS通过TCP取得解析
-     *
-     * @param quest 原始DNS请求
-     * @return
-     */
-    protected byte[] fetchAnswer(byte[] quest) {
-
-        Socket innerSocket = new InnerSocketBuilder("8.8.4.4", 53, "8.8.4.4:53")
-                .getSocket();
-        DataInputStream in;
-        DataOutputStream out;
-        byte[] result = null;
-        try {
-            if (innerSocket != null && innerSocket.isConnected()) {
-                // 构造TCP DNS包
-                int dnsqLength = quest.length;
-                byte[] tcpdnsq = new byte[dnsqLength + 2];
-                System.arraycopy(int2byte(dnsqLength), 0, tcpdnsq, 1, 1);
-                System.arraycopy(quest, 0, tcpdnsq, 2, dnsqLength);
-
-                // 转发DNS
-                in = new DataInputStream(innerSocket.getInputStream());
-                out = new DataOutputStream(innerSocket.getOutputStream());
-                out.write(tcpdnsq);
-                out.flush();
-
-                ByteArrayOutputStream bout = new ByteArrayOutputStream();
-
-                int b = -1;
-                while ((b = in.read()) != -1) {
-                    bout.write(b);
-                }
-                byte[] tcpdnsr = bout.toByteArray();
-                if (tcpdnsr != null && tcpdnsr.length > 2) {
-                    result = new byte[tcpdnsr.length - 2];
-                    System.arraycopy(tcpdnsr, 2, result, 0, tcpdnsr.length - 2);
-                }
-                innerSocket.close();
-            }
-        } catch (IOException e) {
-            Log.e(TAG, "", e);
-        }
-        return result;
-    }
-
     public byte[] fetchAnswerHTTP(byte[] quest) {
         byte[] result = null;
         String domain = getRequestDomain(quest);
@@ -330,7 +260,6 @@ public class DNSServer implements WrapServer {
         return requestDomain;
     }
 
-    @Override
     public int getServPort() {
         return this.srvPort;
     }
@@ -349,7 +278,6 @@ public class DNSServer implements WrapServer {
         return srvPort;
     }
 
-    @Override
     public boolean isClosed() {
         return srvSocket.isClosed();
     }
@@ -562,16 +490,6 @@ public class DNSServer implements WrapServer {
                     sendDns(dnsCache.get(questDomain).getDnsResponse(), dnsq,
                             srvSocket);
 
-                } else if (orgCache.containsKey(questDomain)) { // 如果为自定义域名解析
-                    byte[] ips = parseIPString(orgCache.get(questDomain));
-                    byte[] answer = createDNSResponse(udpreq, ips);
-                    addToCache(questDomain, answer);
-                    sendDns(answer, dnsq, srvSocket);
-                } else if (questDomain.toLowerCase().contains("appspot.com")) { // for
-                    byte[] ips = parseIPString("127.0.0.1");
-                    byte[] answer = createDNSResponse(udpreq, ips);
-                    addToCache(questDomain, answer);
-                    sendDns(answer, dnsq, srvSocket);
                 } else {
                     synchronized (this) {
                         if (domains.contains(questDomain))
@@ -696,23 +614,6 @@ public class DNSServer implements WrapServer {
 
     public void setBasePath(String path) {
         this.homePath = path;
-    }
-
-    @Override
-    public void setProxyHost(String host) {
-        // TODO Auto-generated method stub
-
-    }
-
-    @Override
-    public void setProxyPort(int port) {
-        // TODO Auto-generated method stub
-
-    }
-
-    @Override
-    public void setTarget(String target) {
-        this.target = target;
     }
 
     public boolean test(String domain, String ip) {
