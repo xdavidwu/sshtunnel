@@ -201,22 +201,30 @@ public class DNSServer implements WrapServer {
         }
 
         System.arraycopy(quest, 0, response, 0, 2); /* 0:2 */
-        System.arraycopy(quest, 4, response, 4, 2); /* 4:6 -> 4:6 */
-        System.arraycopy(quest, 4, response, 6, 2); /* 4:6 -> 7:9 */
+        System.arraycopy(quest, 4, response, 4, 2); /* 4:6 -> 4:6 QDCOUNT */
+        System.arraycopy(quest, 4, response, 6, 2); /* 4:6 -> 6:8 ANCOUNT */
         System.arraycopy(quest, DNS_PKG_HEADER_LEN, response, start,
                 quest.length - DNS_PKG_HEADER_LEN); /* 12:~ -> 15:~ */
         start += quest.length - DNS_PKG_HEADER_LEN;
 
-        for (int val : DNS_PAYLOAD) {
-            response[start] = (byte) val;
-            start++;
-        }
+        if (ips == null) { //NXDOMAIN
+		response[3] = (byte) 0x83; // name error 3 in RCODE
+		response[6] = (byte) 0x00; // clear ANCOUNT
+		response[7] = (byte) 0x00;
+	}
+	else {
+
+		for (int val : DNS_PAYLOAD) {
+			response[start] = (byte) val;
+			start++;
+		}
 
 		/* IP address in response */
-        for (byte ip : ips) {
-            response[start] = ip;
-            start++;
-        }
+		for (byte ip : ips) {
+			response[start] = ip;
+			start++;
+		}
+	}
 
         byte[] result = new byte[start];
         System.arraycopy(response, 0, result, 0, start);
@@ -291,7 +299,7 @@ public class DNSServer implements WrapServer {
         }
 
         if (ip.equals(CANT_RESOLVE)) {
-            return null;
+            return createDNSResponse(quest, null);
         }
 
         byte[] ips = parseIPString(ip);
@@ -495,6 +503,14 @@ public class DNSServer implements WrapServer {
 		    Log.d(TAG, "Regex matches");
 		    ip = m.group(2);
 	    }
+	    else{
+		    p = Pattern.compile("\"rcode\":\"NXDOMAIN\"");
+		    m = p.matcher(tmp);
+		    if (m.find()){
+			    Log.d(TAG, domain + ": NXDOMAIN");
+			    ip = CANT_RESOLVE;
+		    }
+	    }
         } catch (SocketException e) {
             Log.e(TAG, "Failed to request URI: " + url, e);
         } catch (IOException e) {
@@ -539,7 +555,7 @@ public class DNSServer implements WrapServer {
                 // 尝试从缓存读取域名解析
                 final String questDomain = getRequestDomain(udpreq);
 
-                Log.d(TAG, "Resolve: " + questDomain);
+                Log.d(TAG, "Resolve: " + questDomain + " QTYPE: " + udpreq[dnsqLength-4] + udpreq[dnsqLength-3]);
 
                 if (dnsCache.containsKey(questDomain)) {
 
@@ -552,7 +568,6 @@ public class DNSServer implements WrapServer {
                     addToCache(questDomain, answer);
                     sendDns(answer, dnsq, srvSocket);
                 } else if (questDomain.toLowerCase().contains("appspot.com")) { // for
-                    // gaednsproxy.appspot.com
                     byte[] ips = parseIPString("127.0.0.1");
                     byte[] answer = createDNSResponse(udpreq, ips);
                     addToCache(questDomain, answer);
@@ -580,9 +595,9 @@ public class DNSServer implements WrapServer {
                                 if (answer != null && answer.length != 0) {
                                     addToCache(questDomain, answer);
                                     sendDns(answer, dnsq, srvSocket);
-                                    Log.d(TAG, "DNS response，length："
+                                    Log.d(TAG, "DNS response, length: "
                                             + answer.length
-                                            + "  cost："
+                                            + "  cost: "
                                             + (System.currentTimeMillis() - startTime)
                                             / 1000 + "s");
                                 } else {
