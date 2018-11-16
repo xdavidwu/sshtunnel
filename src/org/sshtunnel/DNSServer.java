@@ -111,11 +111,12 @@ public class DNSServer implements Runnable {
     final private int[] DNS_HEADERS = {0, 0, 0x81, 0x80, 0, 0, 0, 0, 0, 0, 0,
             0};
     final private int[] DNS_PAYLOAD = {0xc0, 0x0c, 0x00}; //0x01, NAME and first byte of TYPE
-    final private int[] DNS_PAYLOAD_2 = {0x00, 0x01, 0x00, 0x00, 0x00, 0x3c, 0x00};
-    					//--CLASS-- -----------TTL--------- RDLENGTH first byte
+    final private int[] DNS_PAYLOAD_2 = {0x00, 0x01, 0x00, 0x00, 0x00, 0x3c};
+					//--CLASS-- -----------TTL---------
     final private int IP_SECTION_LEN = 4;
     final private int TYPE_A = 0x01;
     final private int TYPE_AAAA = 0x1c;
+    final private int TYPE_PTR = 0x0c;
     public HashSet<String> domains;
     protected Context context;
     private String homePath;
@@ -172,7 +173,7 @@ public class DNSServer implements Runnable {
         byte[] response = null;
         int start = 0;
 
-        response = new byte[128];
+        response = new byte[512]; // RFC 1035 UDP messages 512 octets or less
 
         for (int val : DNS_HEADERS) {
             response[start] = (byte) val;
@@ -205,9 +206,9 @@ public class DNSServer implements Runnable {
 			response[start] = (byte) val;
 			start++;
 		}
-		/* RFC 1035: name is 255 octets or less, which is our max
-		 * so edit last 1 byte of RDLENGTH should be enough */
 		Log.d(TAG, "TYPE: " + type + " RDLENGTH: " + ips.length);
+		response[start] = (byte) (ips.length / 256); // 1st byte
+		start++;
 		response[start] = (byte) ips.length;
 		start++;
 
@@ -231,13 +232,12 @@ public class DNSServer implements Runnable {
 
         DomainValidator dv = DomainValidator.getInstance();
 
-		/* Not support reverse domain name query */
-        if (domain.endsWith("in-addr.arpa") || domain.endsWith("ip6.arpa") || !dv.isValid(domain)) {
+        if (!dv.isValid(domain)) {
             return createDNSResponse(quest, parseIPString("127.0.0.1"), TYPE_A);
             // return null;
         }
 
-	if (type != TYPE_AAAA) type = TYPE_A;
+	if (type != TYPE_AAAA && type != TYPE_PTR) type = TYPE_A;
 
         ip = resolveDomainName(domain,type);
 
@@ -261,10 +261,25 @@ public class DNSServer implements Runnable {
 			Log.e(TAG, e.getLocalizedMessage(), e);
 		}
 	}
+	else if (type == TYPE_PTR) {
+		// encode name
+		byte[] encoded = new byte[ip.length()+1];
+		int idx = 0;
+		for (String label : ip.split("\\.")){
+			Log.d(TAG, "Find label: " + label + " at " + idx);
+			encoded[idx] = (byte) label.length();
+			idx++;
+			System.arraycopy(label.getBytes(), 0, encoded, idx, label.length());
+			idx += label.length();
+		}
+		encoded[idx] = (byte) 0x00;
+		ips = encoded;
+	}
 
         if (ips != null) {
             result = createDNSResponse(quest, ips, type);
         }
+	else Log.d(TAG, "ips == null");
 
         return result;
     }
@@ -442,6 +457,7 @@ public class DNSServer implements Runnable {
                 + domain;
 	if (type == TYPE_A) url += "/A";
 	else if (type == TYPE_AAAA) url += "/AAAA";
+	else if (type == TYPE_PTR) url += "/PTR";
 
         try {
             URL aURL = new URL(url);
@@ -455,6 +471,7 @@ public class DNSServer implements Runnable {
 	    String ps = "\"type\":\"";
 	    if (type == TYPE_A) ps += "A";
 	    else if (type == TYPE_AAAA) ps += "AAAA";
+	    else if (type == TYPE_PTR) ps += "PTR";
 	    Pattern p = Pattern.compile(ps + "\",\"class\":\"IN\",\"ttl\":([0-9]*?),\"rdata\":\"(.*?)\"");
 	    Matcher m = p.matcher(tmp);
 	    if (m.find()){
